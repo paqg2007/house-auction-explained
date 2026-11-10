@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>House Auction Explained</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Caveat:wght@700&display=swap" rel="stylesheet" />
+    <style>
+      :root{
+        --bg:#eef1f5;
+        --surface:#ffffff;
+        --surface-2:#e6ebf2;
+        --ink:#152238;
+        --muted:#50607a;
+        --line:#d3dce8;
+        --amber:#e8930c;
+        --amber-soft:#fdf0dc;
+        --teal:#0e7c66;
+        --teal-soft:#dff2ec;
+        --red:#cf3f3f;
+        --red-soft:#fbe7e7;
+        --navy:#152238;
+        --shadow:0 18px 40px rgba(21,34,56,.14);
+        --radius:20px;
+      }
+      @media (prefers-color-scheme: dark){
+        :root{
+          --bg:#0c1322;
+          --surface:#17233c;
+          --surface-2:#1f2f4e;
+          --ink:#f2f5fa;
+          --muted:#a9b7cf;
+          --line:#2c3d5f;
+          --amber:#f5a623;
+          --amber-soft:#3a2c10;
+          --teal:#3ec9a7;
+          --teal-soft:#12362e;
+          --red:#ff7a7a;
+          --red-soft:#3d1d1d;
+          --navy:#f2f5fa;
+          --shadow:0 18px 40px rgba(0,0,0,.45);
+        }
+      }
+      *{box-sizing:border-box}
+      html,body{height:100%}
+      body{
+        margin:0;
+        font-family:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+        background:var(--bg);
+        color:var(--ink);
+        -webkit-font-smoothing:antialiased;
+      }
+      button{font-family:inherit;cursor:pointer}
+
+      /* ---------- Deck frame ---------- */
+      .deck{
+        min-height:100dvh;
+        display:flex;
+        flex-direction:column;
+        max-width:1180px;
+        margin:0 auto;
+        padding:14px clamp(12px,3vw,28px) 18px;
+      }
+      .topbar{
+        display:flex;align-items:center;gap:14px;
+        padding:4px 2px 12px;
+      }
+      .topbar .label{
+        font-weight:900;letter-spacing:.14em;text-transform:uppercase;
+        font-size:.78rem;color:var(--muted);white-space:nowrap;
+      }
+      .progress{
+        flex:1;height:10px;border-radius:99px;background:var(--surface-2);
+        overflow:hidden;
+      }
+      .progress > div{
+        height:100%;width:0%;border-radius:99px;
+        background:var(--amber);
+        transition:width .45s cubic-bezier(.22,1,.36,1);
+      }
+      .counter{
+        font-weight:900;font-size:.95rem;color:var(--muted);
+        font-variant-numeric:tabular-nums;white-space:nowrap;
+      }
+      .stage{flex:1;display:flex;min-height:0}
+
+      /* ---------- Slides ---------- */
+      .slide{
+        display:none;
+        width:100%;
+        background:var(--surface);
+        border:1px solid var(--line);
+        border-radius:26px;
+        box-shadow:var(--shadow);
+        padding:clamp(22px,4.5vw,52px);
+        flex-direction:column;
+        justify-content:center;
+        overflow:hidden;
+        position:relative;
+      }
+      .slide.active{display:flex;animation:slideIn .45s cubic-bezier(.22,1,.36,1) both}
+      @keyframes slideIn{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:none}}
+      .slide.active.back{animation-name:slideInBack}
+      @keyframes slideInBack{from{opacity:0;transform:translateX(-26px)}to{opacity:1;transform:none}}
+
+      .slide.active .reveal{animation:pop .55s cubic-bezier(.22,1,.36,1) both;animation-delay:var(--d,0s)}
+      @keyframes pop{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
+
+      .kicker{
+        display:inline-flex;align-items:center;gap:8px;align-self:flex-start;
+        font-weight:900;letter-spacing:.12em;text-transform:uppercase;font-size:.8rem;
+        color:var(--teal);background:var(--teal-soft);
+        padding:8px 14px;border-radius:99px;margin-bottom:16px;
+      }
+      .kicker.amber{color:var(--amber);background:var(--amber-soft)}
+      .kicker.red{color:var(--red);background:var(--red-soft)}
+      h1{
+        font-size:clamp(2.4rem,6.5vw,4.4rem);line-height:1.02;font-weight:900;
+        margin:0 0 14px;letter-spacing:-.01em;
+      }
+      h2{
+        font-size:clamp(1.7rem,4.4vw,2.7rem);line-height:1.08;font-weight:900;
+        margin:0 0 12px;letter-spacing:-.01em;
+      }
+      .big{font-size:clamp(1.15rem,2.6vw,1.5rem);line-height:1.45;font-weight:700;color:var(--muted);margin:0}
+      .big strong{color:var(--ink)}
+      .hl-amber{color:var(--amber)}
+      .hl-teal{color:var(--teal)}
+      .hl-red{color:var(--red)}
+
+      /* Title slide */
+      .title-wrap{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(18px,4vw,48px);align-items:center}
+      .tagline{font-family:"Caveat",cursive;font-size:clamp(1.5rem,3.4vw,2.1rem);color:var(--amber);margin:6px 0 0}
+      .house-art{display:flex;justify-content:center}
+      .house-art svg{width:min(100%,380px);height:auto}
+      .house-body{stroke:var(--ink)}
+      .gavel-base{fill:var(--ink)}
+      .gavel-handle{fill:var(--ink)}
+      .slide.active .house-float{animation:floaty 3.2s ease-in-out infinite}
+      @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+      .slide.active .roof-draw{stroke-dasharray:360;stroke-dashoffset:360;animation:draw .65s .05s ease forwards}
+      @keyframes draw{to{stroke-dashoffset:0}}
+      .slide.active .sun-spin{transform-origin:322px 62px;animation:spin 14s linear infinite}
+      @keyframes spin{to{transform:rotate(360deg)}}
+      .start-hint{margin-top:26px;font-weight:800;color:var(--muted);font-size:1rem;display:flex;align-items:center;gap:12px}
+      .start-hint .arrow{
+        flex:0 0 auto;display:inline-flex;width:38px;height:38px;border-radius:50%;
+        background:var(--amber);color:#fff;align-items:center;justify-content:center;
+        animation:nudge 1.4s ease-in-out infinite;
+      }
+      @keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(6px)}}
+
+      /* Step cards */
+      .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px}
+      .card{
+        background:var(--surface-2);border-radius:var(--radius);
+        padding:22px 20px;border:1px solid var(--line);
+      }
+      .card .num{
+        width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+        font-weight:900;font-size:1.3rem;color:#fff;background:var(--teal);margin-bottom:12px;
+      }
+      .card.amber .num{background:var(--amber)}
+      .card.red .num{background:var(--red)}
+      .card h3{margin:0 0 6px;font-size:1.25rem;font-weight:900}
+      .card p{margin:0;font-weight:700;color:var(--muted);line-height:1.4;font-size:1rem}
+
+      /* Big list rows */
+      .rows{display:flex;flex-direction:column;gap:14px;margin-top:24px}
+      .row{
+        display:flex;gap:16px;align-items:flex-start;
+        background:var(--surface-2);border:1px solid var(--line);
+        border-radius:var(--radius);padding:18px 20px;
+      }
+      .row .ico{
+        flex:0 0 auto;width:52px;height:52px;border-radius:16px;
+        display:flex;align-items:center;justify-content:center;
+        background:var(--surface);border:1px solid var(--line);color:var(--teal);
+      }
+      .row .ico.amber{color:var(--amber)}
+      .row .ico.red{color:var(--red)}
+      .row h3{margin:0 0 3px;font-size:1.2rem;font-weight:900}
+      .row p{margin:0;font-weight:700;color:var(--muted);line-height:1.4}
+      .row p strong{color:var(--ink)}
+
+      /* Money */
+      .money{
+        font-size:clamp(2.6rem,8vw,5.2rem);font-weight:900;letter-spacing:-.01em;
+        color:var(--teal);font-variant-numeric:tabular-nums;line-height:1;margin:8px 0 4px;
+      }
+      .money-note{font-weight:800;color:var(--muted);font-size:1.1rem}
+      .pill-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+      .pill{
+        display:inline-flex;align-items:center;gap:9px;
+        border:2px solid var(--line);border-radius:99px;padding:12px 18px;
+        font-weight:900;font-size:1.05rem;background:var(--surface);
+      }
+      .pill svg{color:var(--amber);flex:0 0 auto}
+      .pill b{color:var(--teal)}
+
+      /* Gavel */
+      .gavel-stage{display:flex;align-items:center;gap:clamp(16px,4vw,40px);flex-wrap:wrap}
+      .slide.active .gavel{transform-origin:70% 80%;animation:bang 1.6s ease-in-out .3s 2}
+      @keyframes bang{0%,55%,100%{transform:rotate(0)}15%{transform:rotate(-24deg)}30%{transform:rotate(9deg)}42%{transform:rotate(-14deg)}}
+      .timer-chip{
+        display:inline-flex;align-items:center;gap:10px;background:var(--amber-soft);
+        color:var(--amber);font-weight:900;font-size:1.3rem;border-radius:16px;padding:14px 20px;
+      }
+
+      /* Formula */
+      .formula{
+        display:flex;align-items:stretch;justify-content:center;gap:12px;flex-wrap:wrap;
+        margin-top:28px;text-align:center;
+      }
+      .f-part{
+        background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius);
+        padding:18px 16px;min-width:150px;flex:1;max-width:220px;
+      }
+      .f-part .p-name{font-weight:900;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+      .f-part .p-title{font-weight:900;font-size:1.35rem;margin:4px 0 2px}
+      .f-part .p-range{font-weight:900;font-size:1.6rem}
+      .f-part.c1 .p-range{color:var(--teal)}
+      .f-part.c2 .p-range{color:var(--amber)}
+      .f-part.c3 .p-range{color:var(--red)}
+      .f-op{display:flex;align-items:center;font-size:2rem;font-weight:900;color:var(--muted)}
+      .formula-note{margin-top:22px;text-align:center}
+
+      /* Part header */
+      .part-head{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:6px}
+      .part-badge{
+        font-weight:900;font-size:1rem;letter-spacing:.08em;text-transform:uppercase;
+        border-radius:14px;padding:12px 18px;color:#fff;background:var(--teal);white-space:nowrap;
+      }
+      .part-badge.amber{background:var(--amber)}
+      .part-badge.red{background:var(--red)}
+      .range-big{font-size:clamp(2rem,5.5vw,3.4rem);font-weight:900;line-height:1}
+      .range-big small{font-size:.45em;color:var(--muted);font-weight:800}
+
+      /* Price bars */
+      .bars{display:flex;flex-direction:column;gap:16px;margin-top:26px}
+      .bar-row{display:grid;grid-template-columns:170px 1fr 64px;align-items:center;gap:14px}
+      .bar-row .blabel{font-weight:900;font-size:1.02rem;line-height:1.25}
+      .bar-track{height:34px;background:var(--surface-2);border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+      .bar-fill{height:100%;width:0;border-radius:10px;background:var(--amber);transition:width 1s cubic-bezier(.22,1,.36,1)}
+      .bar-fill.top{background:var(--teal)}
+      .bar-fill.low{background:#b9c6d8}
+      .bar-fill.none{background:var(--red)}
+      .bar-row .bval{font-weight:900;font-size:1.5rem;text-align:right;font-variant-numeric:tabular-nums}
+      @media (prefers-color-scheme: dark){.bar-fill.low{background:#5a6d8c}}
+
+      /* Secret flip card */
+      .flip-wrap{display:flex;gap:clamp(18px,4vw,44px);align-items:center;flex-wrap:wrap;margin-top:10px}
+      .flip{
+        width:min(300px,80vw);height:210px;background:none;border:none;padding:0;
+      }
+      .flip-inner{position:relative;display:block;width:100%;height:100%}
+      .flip-face{
+        position:absolute;inset:0;
+        border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+        padding:20px;text-align:center;border:2px dashed var(--line);background:var(--surface-2);
+        transition:opacity .35s ease,transform .45s cubic-bezier(.22,1,.36,1);
+      }
+      .flip-face .q{font-size:4.2rem;font-weight:900;color:var(--muted);line-height:1}
+      .flip-face .tap{font-weight:900;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-size:.8rem}
+      .flip-back{border:2px solid var(--red);background:var(--red-soft);opacity:0;transform:scale(.9) rotate(-2deg);pointer-events:none}
+      .flip.flipped .flip-front{opacity:0;transform:scale(.9) rotate(2deg);pointer-events:none}
+      .flip.flipped .flip-back{opacity:1;transform:none;pointer-events:auto}
+      .flip-back .secret-num{font-size:4rem;font-weight:900;color:var(--red);line-height:1}
+      .flip-back .secret-label{font-weight:900;font-size:1.05rem}
+
+      /* Example math */
+      .math{
+        display:flex;align-items:center;justify-content:center;gap:clamp(8px,2.4vw,20px);
+        flex-wrap:wrap;margin:30px 0 8px;text-align:center;
+      }
+      .m-num{
+        min-width:104px;padding:18px 10px;border-radius:20px;background:var(--surface-2);
+        border:1px solid var(--line);
+      }
+      .m-num .v{font-size:clamp(2rem,5vw,3rem);font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+      .m-num .t{font-weight:800;color:var(--muted);font-size:.92rem;margin-top:6px}
+      .m-num.c1 .v{color:var(--teal)} .m-num.c2 .v{color:var(--amber)} .m-num.c3 .v{color:var(--red)}
+      .m-op{font-size:2rem;font-weight:900;color:var(--muted)}
+      .m-final{background:var(--navy);border-color:transparent}
+      .m-final .v{color:var(--amber)}
+      .m-final .t{color:var(--muted)}
+      @media (prefers-color-scheme: dark){.m-final{background:#f2f5fa}.m-final .t{color:#50607a}}
+
+      /* Calculator */
+      .calc{display:grid;grid-template-columns:1.2fr .8fr;gap:clamp(18px,4vw,40px);margin-top:22px;align-items:center}
+      .slider-row{margin-bottom:20px}
+      .slider-row label{display:flex;justify-content:space-between;font-weight:900;font-size:1.05rem;margin-bottom:8px}
+      .slider-row label output{font-variant-numeric:tabular-nums}
+      input[type="range"]{
+        width:100%;height:44px;accent-color:var(--amber);cursor:pointer;margin:0;
+      }
+      .calc-result{
+        background:var(--surface-2);border:1px solid var(--line);border-radius:24px;
+        padding:26px;text-align:center;
+      }
+      .calc-result .cr-label{font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-size:.85rem}
+      .calc-result .cr-num{font-size:clamp(3.4rem,8vw,5rem);font-weight:900;line-height:1.05;color:var(--teal);font-variant-numeric:tabular-nums}
+      .calc-result .cr-math{font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+
+      /* Golden rule */
+      .golden{
+        background:var(--amber-soft);border:2px solid var(--amber);border-radius:24px;
+        padding:clamp(20px,3.5vw,32px);margin-top:24px;
+      }
+      .golden h3{margin:0 0 8px;font-size:clamp(1.4rem,3.4vw,2rem);font-weight:900}
+      .golden p{margin:0;font-size:clamp(1.05rem,2.4vw,1.3rem);font-weight:700;line-height:1.45}
+
+      /* ---------- Controls ---------- */
+      .controls{
+        display:flex;align-items:center;justify-content:space-between;gap:12px;
+        padding-top:16px;
+      }
+      .nav-btn{
+        display:inline-flex;align-items:center;gap:9px;
+        min-height:52px;padding:12px 22px;border-radius:99px;
+        border:2px solid var(--line);background:var(--surface);
+        font-weight:900;font-size:1.02rem;color:var(--ink);
+        transition:transform .15s ease,background .15s ease;
+      }
+      .nav-btn:hover{transform:translateY(-1px)}
+      .nav-btn:active{transform:scale(.97)}
+      .nav-btn.primary{background:var(--amber);border-color:var(--amber);color:#fff}
+      .nav-btn:disabled{opacity:.35;cursor:default;transform:none}
+      .dots{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+      .dot{
+        width:38px;height:38px;border-radius:50%;border:none;background:transparent;
+        display:flex;align-items:center;justify-content:center;padding:0;
+      }
+      .dot::before{content:"";width:11px;height:11px;border-radius:50%;background:var(--line);transition:all .25s ease}
+      .dot.on::before{background:var(--amber);width:26px;border-radius:99px}
+      .fs-btn{
+        min-height:52px;min-width:52px;border-radius:50%;border:2px solid var(--line);
+        background:var(--surface);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;
+      }
+
+      @media (max-width:760px){
+        .title-wrap{grid-template-columns:1fr}
+        .house-art{order:-1}
+        .house-art svg{width:min(64vw,260px)}
+        .cards{grid-template-columns:1fr}
+        .calc{grid-template-columns:1fr}
+        .bar-row{grid-template-columns:104px 1fr 50px;gap:10px}
+        .bar-row .blabel{font-size:.9rem}
+        .dots{display:none}
+        .slide{padding:22px 18px}
+        .f-op{font-size:1.4rem}
+      }
+
+      @media (prefers-reduced-motion: reduce){
+        *,*::before,*::after{animation-duration:.001s !important;transition-duration:.001s !important}
+      }
+
+      @media print{
+        .topbar,.controls{display:none}
+        .slide{display:flex !important;page-break-after:always;box-shadow:none;margin-bottom:16px}
+        .deck{max-width:none}
+      }
+    </style>
+  </head>
+  <body>
+    <div class="deck">
+      <div class="topbar">
+        <span class="label">8th Grade &middot; House Auction</span>
+        <div class="progress" aria-hidden="true"><div id="progressFill"></div></div>
+        <span class="counter" id="counter">1 / 12</span>
+      </div>
+
+      <main class="stage" id="stage">
+
+        <!-- 1 · TITLE -->
+        <section class="slide" aria-label="Title">
+          <div class="title-wrap">
+            <div>
+              <span class="kicker reveal" style="--d:.05s">Class Project &middot; 8th Grade</span>
+              <h1 class="reveal" style="--d:.12s">The House<br />Auction</h1>
+              <p class="big reveal" style="--d:.22s">How the game works, and how your grade works. <strong>Simple, step by step.</strong></p>
+              <p class="tagline reveal" style="--d:.32s">Draw it. Pitch it. Sell it. Buy smart.</p>
+              <div class="start-hint reveal" style="--d:.42s">
+                <span class="arrow" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </span>
+                Press Next, or use the arrow keys
+              </div>
+            </div>
+            <div class="house-art reveal" style="--d:.2s" aria-hidden="true">
+              <svg viewBox="0 0 400 320" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <g class="sun-spin" stroke="#e8930c" stroke-width="6">
+                  <circle cx="322" cy="62" r="17" fill="#f5a623" stroke="none"/>
+                  <path d="M322 32v-9M322 92v9M292 62h-9M352 62h9M301 41l-7-7M343 41l7-7M301 83l-7 7M343 83l7 7"/>
+                </g>
+                <g class="house-float">
+                  <path class="roof-draw" d="M60 168 L200 62 L340 168" stroke="#0e7c66" stroke-width="13"/>
+                  <path d="M92 158 V282 H308 V158" stroke="#152238" stroke-width="9" class="house-body"/>
+                  <rect x="176" y="212" width="48" height="70" rx="5" fill="#e8930c"/>
+                  <circle cx="214" cy="248" r="4.5" fill="#152238"/>
+                  <rect x="112" y="188" width="42" height="42" rx="5" fill="#dff2ec" stroke="#0e7c66" stroke-width="6"/>
+                  <rect x="246" y="188" width="42" height="42" rx="5" fill="#dff2ec" stroke="#0e7c66" stroke-width="6"/>
+                  <path d="M40 282 H360" stroke="#152238" stroke-width="9"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2 · THE BIG IDEA -->
+        <section class="slide" aria-label="The big idea">
+          <span class="kicker reveal" style="--d:.05s">The Big Idea</span>
+          <h2 class="reveal" style="--d:.12s">The whole project in 3 steps</h2>
+          <p class="big reveal" style="--d:.2s">Every team <strong>makes</strong> a house, <strong>sells</strong> it at auction, and <strong>buys</strong> other teams&rsquo; houses.</p>
+          <div class="cards">
+            <div class="card reveal" style="--d:.3s">
+              <div class="num">1</div>
+              <h3>Create</h3>
+              <p>Draw a house and make an advertisement for it.</p>
+            </div>
+            <div class="card amber reveal" style="--d:.42s">
+              <div class="num">2</div>
+              <h3>Sell</h3>
+              <p>Pitch your house in 2 minutes. The class bids on it.</p>
+            </div>
+            <div class="card red reveal" style="--d:.54s">
+              <div class="num">3</div>
+              <h3>Buy</h3>
+              <p>Spend fake money on the houses you like best.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3 · STEP 1 CREATE -->
+        <section class="slide" aria-label="Step 1 create">
+          <span class="kicker reveal" style="--d:.05s">Step 1 &middot; Create</span>
+          <h2 class="reveal" style="--d:.12s">Work in pairs. Draw it, don&rsquo;t build it.</h2>
+          <div class="rows">
+            <div class="row reveal" style="--d:.22s">
+              <span class="ico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+              <div>
+                <h3>Teams of 2</h3>
+                <p>You and your partner are one team. You share the work <strong>and</strong> the grade.</p>
+              </div>
+            </div>
+            <div class="row reveal" style="--d:.34s">
+              <span class="ico amber" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><circle cx="11" cy="11" r="2"/></svg></span>
+              <div>
+                <h3>Draw your house</h3>
+                <p>Draw it in <strong>your own style</strong>. Make it a house people will want to buy.</p>
+              </div>
+            </div>
+            <div class="row reveal" style="--d:.46s">
+              <span class="ico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-7-4 16-6-4-3 4v-6L3 11z"/><path d="M11 16l4-6"/></svg></span>
+              <div>
+                <h3>Make an advertisement</h3>
+                <p>Your ad has to sell the house. <strong>You do not build anything.</strong> Drawing + ad is the whole job.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4 · STEP 2 AUCTION DAY -->
+        <section class="slide" aria-label="Step 2 auction day">
+          <span class="kicker amber reveal" style="--d:.05s">Step 2 &middot; Auction Day</span>
+          <h2 class="reveal" style="--d:.12s">Pitch fast. Then the bidding starts.</h2>
+          <div class="gavel-stage">
+            <svg class="gavel reveal" style="--d:.2s" width="150" height="130" viewBox="0 0 150 130" aria-hidden="true">
+              <g transform="rotate(18 60 45)">
+                <rect x="18" y="28" width="62" height="22" rx="8" fill="#e8930c"/>
+                <rect x="18" y="52" width="62" height="22" rx="8" fill="#b96f06"/>
+                <rect x="66" y="38" width="14" height="26" fill="#8a5a10"/>
+                <rect class="gavel-handle" x="72" y="58" width="13" height="62" rx="6" transform="rotate(-32 78 88)" fill="#152238"/>
+              </g>
+              <rect class="gavel-base" x="8" y="112" width="86" height="10" rx="5" fill="#152238"/>
+            </svg>
+            <div style="flex:1;min-width:260px">
+              <div class="rows" style="margin-top:0">
+                <div class="row reveal" style="--d:.3s">
+                  <div>
+                    <h3>Your pitch: 2 minutes</h3>
+                    <p>Show your drawing and your ad. Tell the class <strong>why your house is worth buying</strong>.</p>
+                  </div>
+                </div>
+                <div class="row reveal" style="--d:.42s">
+                  <div>
+                    <h3>Mr. Quintero is the auctioneer</h3>
+                    <p>He runs the sale. Teams raise their bids, the price goes up, and the <strong>highest bid wins the house</strong>.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:22px" class="reveal">
+            <span class="timer-chip" style="--d:.55s">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>
+              2 minutes per team. That&rsquo;s it.
+            </span>
+          </div>
+        </section>
+
+        <!-- 5 · STEP 3 YOUR MONEY -->
+        <section class="slide" aria-label="Step 3 your money">
+          <span class="kicker reveal" style="--d:.05s">Step 3 &middot; Your Money</span>
+          <h2 class="reveal" style="--d:.1s">Every team gets&hellip;</h2>
+          <div class="money reveal" style="--d:.2s">$<span id="moneyCount">0</span></div>
+          <p class="money-note reveal" style="--d:.3s">Fake money. Spend it all on houses, you can&rsquo;t keep the cash.</p>
+          <div class="pill-row">
+            <span class="pill reveal" style="--d:.42s">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+              Buy up to <b>&nbsp;2 houses</b>
+            </span>
+            <span class="pill reveal" style="--d:.52s">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+              At the end, you <b>&nbsp;keep 1</b>
+            </span>
+            <span class="pill reveal" style="--d:.62s">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+              You can <b>&nbsp;sell 1 back</b>
+            </span>
+          </div>
+        </section>
+
+        <!-- 6 · YOUR GRADE = 3 PARTS -->
+        <section class="slide" aria-label="Your grade has 3 parts">
+          <span class="kicker reveal" style="--d:.05s">Your Grade</span>
+          <h2 class="reveal" style="--d:.12s">Your final grade = 3 parts added, divided by 3</h2>
+          <p class="big reveal" style="--d:.2s">No tricks. Just these three numbers. The next slides explain <strong>one part at a time</strong>.</p>
+          <div class="formula">
+            <div class="f-part c1 reveal" style="--d:.3s">
+              <div class="p-name">Part 1</div>
+              <div class="p-title">Quality</div>
+              <div class="p-range">60&ndash;100</div>
+            </div>
+            <div class="f-op reveal" style="--d:.38s">+</div>
+            <div class="f-part c2 reveal" style="--d:.44s">
+              <div class="p-name">Part 2</div>
+              <div class="p-title">Selling Price</div>
+              <div class="p-range">59&ndash;100</div>
+            </div>
+            <div class="f-op reveal" style="--d:.52s">+</div>
+            <div class="f-part c3 reveal" style="--d:.58s">
+              <div class="p-name">Part 3</div>
+              <div class="p-title">Secret Grade</div>
+              <div class="p-range">59&ndash;100</div>
+            </div>
+            <div class="f-op reveal" style="--d:.66s">&divide;&nbsp;3</div>
+          </div>
+          <p class="big formula-note reveal" style="--d:.74s">Each part counts the same. <strong>A weak part pulls your grade down, a strong part pulls it up.</strong></p>
+        </section>
+
+        <!-- 7 · PART 1 QUALITY -->
+        <section class="slide" aria-label="Part 1 quality">
+          <div class="part-head reveal" style="--d:.05s">
+            <span class="part-badge">Part 1 of 3</span>
+            <span class="range-big">60 <small>to</small> 100</span>
+          </div>
+          <h2 class="reveal" style="--d:.12s">Quality: my grade for YOUR work</h2>
+          <p class="big reveal" style="--d:.2s">This part is about the house <strong>your team created</strong>. Nothing to do with money.</p>
+          <div class="rows">
+            <div class="row reveal" style="--d:.3s">
+              <span class="ico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg></span>
+              <div><h3>Your drawing</h3><p>Care, detail and effort in the house you drew.</p></div>
+            </div>
+            <div class="row reveal" style="--d:.42s">
+              <span class="ico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-7-4 16-6-4-3 4v-6L3 11z"/></svg></span>
+              <div><h3>Your advertisement</h3><p>Does your ad make people want the house? Is it clear and convincing?</p></div>
+            </div>
+          </div>
+          <p class="big reveal" style="--d:.54s;margin-top:22px">Better work = higher Part 1. <strong>This grade also hides inside your house as its secret grade.</strong> Remember that for Part 3.</p>
+        </section>
+
+        <!-- 8 · PART 2 SELLING PRICE -->
+        <section class="slide" aria-label="Part 2 selling price">
+          <div class="part-head reveal" style="--d:.05s">
+            <span class="part-badge amber">Part 2 of 3</span>
+            <span class="range-big">59 <small>to</small> 100</span>
+          </div>
+          <h2 class="reveal" style="--d:.12s">Selling Price: how much YOUR house sells for</h2>
+          <p class="big reveal" style="--d:.2s">All the sale prices are lined up, highest to lowest. <strong>Your place in that line is your grade.</strong></p>
+          <div class="bars" id="priceBars">
+            <div class="bar-row reveal" style="--d:.3s">
+              <span class="blabel">Highest price</span>
+              <div class="bar-track"><div class="bar-fill top" data-w="100"></div></div>
+              <span class="bval" style="color:var(--teal)">100</span>
+            </div>
+            <div class="bar-row reveal" style="--d:.42s">
+              <span class="blabel">In the middle</span>
+              <div class="bar-track"><div class="bar-fill" data-w="80"></div></div>
+              <span class="bval" style="color:var(--amber)">60&ndash;100</span>
+            </div>
+            <div class="bar-row reveal" style="--d:.54s">
+              <span class="blabel">Lowest price that still sells</span>
+              <div class="bar-track"><div class="bar-fill low" data-w="60"></div></div>
+              <span class="bval">60</span>
+            </div>
+            <div class="bar-row reveal" style="--d:.66s">
+              <span class="blabel">Your house does not sell</span>
+              <div class="bar-track"><div class="bar-fill none" data-w="59"></div></div>
+              <span class="bval" style="color:var(--red)">59</span>
+            </div>
+          </div>
+          <p class="big reveal" style="--d:.78s;margin-top:22px">A great pitch and a great ad push your price up. <strong>No sale is the only way to get a 59.</strong></p>
+        </section>
+
+        <!-- 9 · PART 3 SECRET GRADE -->
+        <section class="slide" aria-label="Part 3 secret grade">
+          <div class="part-head reveal" style="--d:.05s">
+            <span class="part-badge red">Part 3 of 3</span>
+            <span class="range-big">59 <small>to</small> 100</span>
+          </div>
+          <h2 class="reveal" style="--d:.12s">Secret Grade: the house you KEEP grades YOU</h2>
+          <div class="flip-wrap">
+            <button class="flip reveal" style="--d:.22s" id="flipCard" aria-label="Tap to reveal the secret grade">
+              <span class="flip-inner">
+                <span class="flip-face flip-front">
+                  <span class="q">?</span>
+                  <span class="tap">Tap to reveal</span>
+                </span>
+                <span class="flip-face flip-back">
+                  <span class="secret-num">82</span>
+                  <span class="secret-label">This house&rsquo;s quality grade.<br />Now it&rsquo;s your Part 3.</span>
+                </span>
+              </span>
+            </button>
+            <div style="flex:1;min-width:260px">
+              <p class="big reveal" style="--d:.32s">Every house hides a secret grade: <strong>its Part 1 quality grade</strong>. Nobody knows it while bidding.</p>
+              <p class="big reveal" style="--d:.42s;margin-top:14px">You find out <strong>only when you buy the house</strong>. The secret grade of the house you keep at the end becomes your Part 3.</p>
+              <p class="big reveal" style="--d:.52s;margin-top:14px">Buy no house at all? <strong>Your Part 3 is 59.</strong></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 10 · EXAMPLE -->
+        <section class="slide" aria-label="Example">
+          <span class="kicker reveal" style="--d:.05s">One Full Example</span>
+          <h2 class="reveal" style="--d:.12s">Meet Team Falcon</h2>
+          <p class="big reveal" style="--d:.2s">Their drawing and ad were strong. Their house sold for a good price. And the house they kept turned out to be a good one.</p>
+          <div class="math">
+            <div class="m-num c1 reveal" style="--d:.32s"><div class="v">90</div><div class="t">Part 1 &middot; Quality</div></div>
+            <div class="m-op reveal" style="--d:.4s">+</div>
+            <div class="m-num c2 reveal" style="--d:.46s"><div class="v">85</div><div class="t">Part 2 &middot; Selling Price</div></div>
+            <div class="m-op reveal" style="--d:.54s">+</div>
+            <div class="m-num c3 reveal" style="--d:.6s"><div class="v">80</div><div class="t">Part 3 &middot; Secret Grade</div></div>
+            <div class="m-op reveal" style="--d:.68s">=</div>
+            <div class="m-num reveal" style="--d:.74s"><div class="v">255</div><div class="t">Total &divide; 3</div></div>
+            <div class="m-op reveal" style="--d:.82s">&rarr;</div>
+            <div class="m-num m-final reveal" style="--d:.9s"><div class="v">85</div><div class="t">FINAL GRADE</div></div>
+          </div>
+          <p class="big reveal" style="--d:1s;text-align:center">(90 + 85 + 80) &divide; 3 = <strong>85</strong>. That&rsquo;s all the math there is.</p>
+        </section>
+
+        <!-- 11 · TRY IT -->
+        <section class="slide" aria-label="Try the grade calculator">
+          <span class="kicker amber reveal" style="--d:.05s">Try It Yourself</span>
+          <h2 class="reveal" style="--d:.12s">Move the sliders. See the grade.</h2>
+          <div class="calc">
+            <div class="reveal" style="--d:.22s">
+              <div class="slider-row">
+                <label for="s1">Part 1 &middot; Quality <output id="o1" style="color:var(--teal)">90</output></label>
+                <input type="range" id="s1" min="60" max="100" value="90" />
+              </div>
+              <div class="slider-row">
+                <label for="s2">Part 2 &middot; Selling Price <output id="o2" style="color:var(--amber)">85</output></label>
+                <input type="range" id="s2" min="59" max="100" value="85" />
+              </div>
+              <div class="slider-row" style="margin-bottom:0">
+                <label for="s3">Part 3 &middot; Secret Grade <output id="o3" style="color:var(--red)">80</output></label>
+                <input type="range" id="s3" min="59" max="100" value="80" />
+              </div>
+            </div>
+            <div class="calc-result reveal" style="--d:.34s">
+              <div class="cr-label">Final Grade</div>
+              <div class="cr-num" id="calcFinal">85</div>
+              <div class="cr-math" id="calcMath">(90 + 85 + 80) &divide; 3</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 12 · GOLDEN RULE -->
+        <section class="slide" aria-label="The golden rule">
+          <span class="kicker reveal" style="--d:.05s">Before We Start</span>
+          <h2 class="reveal" style="--d:.12s">The one thing to remember</h2>
+          <div class="golden reveal" style="--d:.24s">
+            <h3>Buy the house you think is GOOD, not just the cheap one.</h3>
+            <p>The house you keep hands you its secret grade. A beautiful, well-made house can pay you back in Part 3, even if it cost you more fake money.</p>
+          </div>
+          <div class="rows">
+            <div class="row reveal" style="--d:.4s">
+              <span class="ico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+              <div><h3>Quick recap</h3><p>Pairs draw a house + make an ad &middot; 2-minute pitch &middot; $3,600,000 fake money &middot; buy up to 2 houses, keep 1 &middot; grade = (Quality + Selling Price + Secret Grade) &divide; 3.</p></div>
+            </div>
+          </div>
+          <p class="tagline reveal" style="--d:.55s;margin-top:24px;font-size:clamp(1.6rem,3.6vw,2.3rem)">Questions? Ask now, before the gavel falls.</p>
+        </section>
+
+      </main>
+
+      <nav class="controls" aria-label="Slide controls">
+        <button class="nav-btn" id="prevBtn" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+          Back
+        </button>
+        <div class="dots" id="dots" role="tablist" aria-label="Go to slide"></div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="fs-btn" id="fsBtn" type="button" aria-label="Full screen" title="Full screen">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+          </button>
+          <button class="nav-btn primary" id="nextBtn" type="button">
+            Next
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </nav>
+    </div>
+
+    <script>
+      (function () {
+        var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+        var total = slides.length;
+        var current = 0;
+        var prevBtn = document.getElementById("prevBtn");
+        var nextBtn = document.getElementById("nextBtn");
+        var counter = document.getElementById("counter");
+        var fill = document.getElementById("progressFill");
+        var dotsWrap = document.getElementById("dots");
+        var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        slides.forEach(function (_, i) {
+          var d = document.createElement("button");
+          d.type = "button";
+          d.className = "dot";
+          d.setAttribute("aria-label", "Go to slide " + (i + 1));
+          d.addEventListener("click", function () { goTo(i, i < current); });
+          dotsWrap.appendChild(d);
+        });
+        var dots = Array.prototype.slice.call(dotsWrap.children);
+
+        var moneyDone = false;
+        function runMoney() {
+          var el = document.getElementById("moneyCount");
+          if (!el) return;
+          var target = 3600000;
+          if (reduced) { el.textContent = target.toLocaleString("en-US"); return; }
+          var start = null, dur = 1300;
+          function step(ts) {
+            if (!start) start = ts;
+            var p = Math.min((ts - start) / dur, 1);
+            var eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(target * eased).toLocaleString("en-US");
+            if (p < 1) requestAnimationFrame(step);
+          }
+          requestAnimationFrame(step);
+        }
+
+        var barsDone = false;
+        function runBars() {
+          document.querySelectorAll("#priceBars .bar-fill").forEach(function (b) {
+            b.style.width = b.getAttribute("data-w") + "%";
+          });
+        }
+        function resetBars() {
+          document.querySelectorAll("#priceBars .bar-fill").forEach(function (b) {
+            b.style.width = "0%";
+          });
+        }
+
+        function goTo(i, back) {
+          if (i < 0 || i >= total) return;
+          slides[current].classList.remove("active", "back");
+          current = i;
+          var s = slides[current];
+          s.classList.toggle("back", !!back);
+          s.classList.add("active");
+          counter.textContent = (current + 1) + " / " + total;
+          fill.style.width = ((current + 1) / total * 100) + "%";
+          prevBtn.disabled = current === 0;
+          nextBtn.disabled = current === total - 1;
+          dots.forEach(function (d, j) { d.classList.toggle("on", j === current); });
+          // Slide 5 (index 4): money counter
+          if (current === 4 && !moneyDone) { moneyDone = true; runMoney(); }
+          // Slide 8 (index 7): price bars
+          if (current === 7) { resetBars(); setTimeout(runBars, 350); barsDone = true; }
+          window.scrollTo(0, 0);
+        }
+
+        prevBtn.addEventListener("click", function () { goTo(current - 1, true); });
+        nextBtn.addEventListener("click", function () { goTo(current + 1, false); });
+
+        document.addEventListener("keydown", function (e) {
+          if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) {
+            if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+            if (e.target.type === "range") return;
+          }
+          if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); goTo(current + 1, false); }
+          if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); goTo(current - 1, true); }
+          if (e.key === "Home") { e.preventDefault(); goTo(0, true); }
+          if (e.key === "End") { e.preventDefault(); goTo(total - 1, false); }
+        });
+
+        // Touch swipe
+        var touchX = null;
+        document.addEventListener("touchstart", function (e) { touchX = e.changedTouches[0].clientX; }, { passive: true });
+        document.addEventListener("touchend", function (e) {
+          if (touchX === null) return;
+          var dx = e.changedTouches[0].clientX - touchX;
+          if (Math.abs(dx) > 60) { if (dx < 0) goTo(current + 1, false); else goTo(current - 1, true); }
+          touchX = null;
+        }, { passive: true });
+
+        // Secret grade flip card
+        var flip = document.getElementById("flipCard");
+        flip.addEventListener("click", function () {
+          flip.classList.toggle("flipped");
+        });
+
+        // Fullscreen
+        document.getElementById("fsBtn").addEventListener("click", function () {
+          try {
+            if (document.fullscreenElement) { document.exitFullscreen(); }
+            else if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen(); }
+          } catch (err) { /* fullscreen not available in this view */ }
+        });
+
+        // Grade calculator
+        var s1 = document.getElementById("s1"), s2 = document.getElementById("s2"), s3 = document.getElementById("s3");
+        var o1 = document.getElementById("o1"), o2 = document.getElementById("o2"), o3 = document.getElementById("o3");
+        var cFinal = document.getElementById("calcFinal"), cMath = document.getElementById("calcMath");
+        function calc() {
+          var a = +s1.value, b = +s2.value, c = +s3.value;
+          o1.textContent = a; o2.textContent = b; o3.textContent = c;
+          var f = Math.round((a + b + c) / 3);
+          cFinal.textContent = f;
+          cMath.textContent = "(" + a + " + " + b + " + " + c + ") \u00F7 3 = " + ((a + b + c) / 3).toFixed(1).replace(/\.0$/, "");
+        }
+        [s1, s2, s3].forEach(function (s) { s.addEventListener("input", calc); });
+        calc();
+
+        goTo(0, false);
+      })();
+    </script>
+  </body>
+</html>
